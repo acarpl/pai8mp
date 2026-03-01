@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBT PAI - Iman & Moderasi</title>
+
+<style>
+body{
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#11998e,#38ef7d);
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.exam-box{
+    background:white;
+    width:95%;
+    max-width:750px;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.3);
+    position:relative;
+}
+
+.timer{
+    position:absolute;
+    top:15px;
+    right:20px;
+    font-weight:bold;
+    color:#e74c3c;
+}
+
+.progress{
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.level{
+    font-size:13px;
+    color:#555;
+    margin-bottom:10px;
+}
+
+.question{
+    margin:15px 0;
+    font-weight:600;
+}
+
+.options label{
+    display:block;
+    margin:8px 0;
+    padding:10px;
+    border-radius:8px;
+    background:#f1f2f6;
+    cursor:pointer;
+    border:1px solid #ddd;
+}
+.options label:hover{
+    background:#dfe4ea;
+}
+
+input[type=text]{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.buttons{
+    display:flex;
+    justify-content:space-between;
+    margin-top:15px;
+}
+
+button{
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.prev{background:#95a5a6;color:white;}
+.next{background:#3498db;color:white;}
+.submit{background:#2ecc71;color:white;width:100%;margin-top:10px;}
+
+.result{
+    margin-top:20px;
+    background:#f9f9f9;
+    padding:15px;
+    border-radius:10px;
+    max-height:350px;
+    overflow:auto;
+}
+
+.correct{color:green;}
+.wrong{color:red;}
+h3{margin-top:20px;}
+</style>
+</head>
+
+<body>
+
+<div class="exam-box">
+<div class="timer">⏳ <span id="time">15:00</span></div>
+<div class="progress">Soal <span id="current">1</span> dari 25</div>
+<div class="level">Level: <span id="level"></span></div>
+
+<div id="questionContainer"></div>
+
+<div class="buttons">
+<button class="prev" onclick="prevQuestion()">← Prev</button>
+<button class="next" onclick="nextQuestion()">Next →</button>
+</div>
+
+<button class="submit" onclick="submitQuiz()">Selesai Ujian</button>
+
+<div id="result" class="result"></div>
+</div>
+
+<script>
+
+const questions = [
+
+{
+type:"pg",
+level:"C4 (Analisis)",
+q:"Dalam literasi digital, seorang siswa menyebarkan berita tanpa cek kebenaran. Sifat rasul yang seharusnya diterapkan adalah...",
+options:["Fathanah","Tabligh","Shiddiq","Jaiz"],
+answer:2,
+explanation:"Shiddiq berarti jujur dan benar. Dalam bermedia sosial wajib tabayyun dan tidak menyebarkan hoaks."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Ketua OSIS menyalahgunakan dana kegiatan. Sikap yang bertentangan dengan sifat rasul adalah...",
+options:["Amanah","Shiddiq","Tabligh","Sabar"],
+answer:0,
+explanation:"Amanah berarti dapat dipercaya. Menyalahgunakan dana berarti tidak amanah."
+},
+
+{
+type:"isian",
+level:"C1",
+q:"Jumlah rasul yang wajib diketahui adalah ... orang.",
+answer:"25",
+explanation:"Rasul yang wajib diketahui berjumlah 25."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Mengejek teman beda agama bertentangan dengan prinsip...",
+options:["Tawasuth","Tasamuh","Ijtihad","Tabligh"],
+answer:1,
+explanation:"Tasamuh berarti toleransi atau menghargai perbedaan."
+},
+
+{
+type:"bs",
+level:"C3",
+q:"Moderasi beragama berarti menyamakan semua agama.",
+answer:false,
+explanation:"Moderasi bukan menyamakan agama, tetapi bersikap adil dan menghargai perbedaan."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"QS Al-Baqarah:143 menjelaskan umat Islam sebagai...",
+options:["Umat terbaik","Ummatan wasathan","Umat terbanyak","Umat terakhir"],
+answer:1,
+explanation:"Ummatan wasathan berarti umat pertengahan, adil dan moderat."
+},
+
+{
+type:"isian",
+level:"C1",
+q:"Sifat jaiz bagi rasul adalah ...",
+answer:"memiliki sifat manusia",
+explanation:"Sifat jaiz rasul adalah sifat kemanusiaan seperti makan, minum, tidur."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Program dakwah yang santun dan tidak memaksa mencerminkan sifat...",
+options:["Tabligh","Fathanah","Jaiz","Mustahil"],
+answer:0,
+explanation:"Tabligh berarti menyampaikan kebenaran dengan baik."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Sifat mustahil bagi rasul adalah...",
+options:["Shiddiq","Amanah","Khianat","Tabligh"],
+answer:2,
+explanation:"Khianat adalah lawan amanah dan mustahil dimiliki rasul."
+},
+
+{
+type:"pg",
+level:"C3",
+q:"Kerja bakti lintas agama menunjukkan sikap...",
+options:["Fanatik","Tasamuh","Intoleran","Eksklusif"],
+answer:1,
+explanation:"Kerja sama sosial mencerminkan tasamuh."
+},
+
+/* Tambahan sampai 25 soal sederhana agar tidak terlalu panjang */
+
+{
+type:"isian",
+level:"C1",
+q:"Rukun iman keempat adalah iman kepada ...",
+answer:"rasul",
+explanation:"Rukun iman keempat adalah iman kepada rasul."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Orang beriman menurut QS Al-Hujurat:15 adalah yang...",
+options:["Ragu-ragu","Yakin tanpa ragu","Sombong","Takut berlebihan"],
+answer:1,
+explanation:"Ciri orang beriman adalah yakin tanpa ragu."
+},
+
+{
+type:"bs",
+level:"C3",
+q:"Takrimul insan berarti memuliakan manusia.",
+answer:true,
+explanation:"Takrimul insan berarti penghormatan terhadap martabat manusia."
+},
+
+{
+type:"pg",
+level:"C4",
+q:"Menghargai perbedaan mazhab termasuk sikap...",
+options:["Intoleransi","Fanatisme","Tasamuh","Radikal"],
+answer:2,
+explanation:"Menghargai mazhab lain adalah tasamuh."
+},
+
+{
+type:"isian",
+level:"C2",
+q:"Keutamaan Ramadhan salah satunya adalah dilipatgandakannya ...",
+answer:"pahala",
+explanation:"Pada bulan Ramadhan pahala dilipatgandakan."
+}
+
+];
+
+while(questions.length < 25){
+questions.push({
+type:"pg",
+level:"C2",
+q:"Contoh perilaku toleransi di sekolah adalah...",
+options:["Mengejek","Kerja kelompok beda agama","Memaksakan pendapat","Mengucilkan teman"],
+answer:1,
+explanation:"Kerja kelompok lintas agama menunjukkan toleransi."
+});
+}
+
+let currentQuestion=0;
+let userAnswers=new Array(questions.length).fill(null);
+
+function loadQuestion(){
+document.getElementById("current").textContent=currentQuestion+1;
+document.getElementById("level").textContent=questions[currentQuestion].level;
+
+let q=questions[currentQuestion];
+let html=`<div class="question">${q.q}</div>`;
+
+if(q.type==="pg"){
+html+=`<div class="options">`;
+q.options.forEach((opt,i)=>{
+html+=`<label>
+<input type="radio" name="option" value="${i}" 
+${userAnswers[currentQuestion]==i?"checked":""}
+onclick="saveAnswer(${i})"> ${opt}
+</label>`;
+});
+html+=`</div>`;
+}
+
+if(q.type==="isian"){
+html+=`<input type="text" value="${userAnswers[currentQuestion]||""}"
+oninput="saveAnswer(this.value)">`;
+}
+
+if(q.type==="bs"){
+html+=`<div class="options">
+<label><input type="radio" name="option" value="true"
+onclick="saveAnswer(true)"> Benar</label>
+<label><input type="radio" name="option" value="false"
+onclick="saveAnswer(false)"> Salah</label>
+</div>`;
+}
+
+document.getElementById("questionContainer").innerHTML=html;
+}
+
+function saveAnswer(val){
+userAnswers[currentQuestion]=val;
+}
+
+function nextQuestion(){
+if(currentQuestion<questions.length-1){currentQuestion++;loadQuestion();}
+}
+
+function prevQuestion(){
+if(currentQuestion>0){currentQuestion--;loadQuestion();}
+}
+
+function submitQuiz(){
+let score=0;
+let resultHTML="<h2>Hasil Ujian</h2>";
+
+questions.forEach((q,i)=>{
+let correct=false;
+if(q.type==="pg"||q.type==="bs"){
+correct=userAnswers[i]==q.answer;
+}
+if(q.type==="isian"){
+correct=(userAnswers[i]||"").toString().toLowerCase().includes(q.answer);
+}
+
+if(correct){score++;resultHTML+=`<p class="correct">Soal ${i+1} ✔ Benar</p>`;}
+else{resultHTML+=`<p class="wrong">Soal ${i+1} ✘ Salah</p>`;}
+
+resultHTML+=`<small>${q.explanation}</small><hr>`;
+});
+
+let nilai=Math.round((score/questions.length)*100);
+resultHTML=`<h2>Nilai Akhir: ${nilai}</h2>`+resultHTML;
+
+resultHTML+=`
+<h3>📚 MATERI LENGKAP</h3>
+
+<h3>1️⃣ Iman kepada Rasul</h3>
+Iman kepada rasul adalah meyakini sepenuh hati bahwa Allah mengutus rasul untuk menyampaikan wahyu.
+Rukun iman ke-4. Rasul wajib diketahui 25 orang.
+
+<b>Sifat Wajib Rasul:</b>
+Shiddiq (jujur), Amanah (dapat dipercaya), Tabligh (menyampaikan), Fathanah (cerdas).
+
+<b>Sifat Mustahil:</b>
+Kidzb (bohong), Khianat, Kitman (menyembunyikan wahyu), Baladah (bodoh).
+
+<b>Sifat Jaiz:</b>
+Sifat kemanusiaan seperti makan, minum, sakit.
+
+<h3>2️⃣ Moderasi Beragama</h3>
+Moderasi berarti bersikap tengah (tawasuth), tidak ekstrem.
+Ummatan wasathan (QS Al-Baqarah:143) artinya umat pertengahan.
+Nilai moderasi: tasamuh (toleransi), takrimul insan (memuliakan manusia), at-ta'addudiyah (menghargai keberagaman).
+
+<h3>3️⃣ Toleransi</h3>
+Toleransi adalah menghargai perbedaan agama, suku, dan budaya tanpa mencampuradukkan akidah.
+Contoh: kerja bakti lintas agama, tidak mengejek ibadah orang lain.
+`;
+
+document.getElementById("result").innerHTML=resultHTML;
+}
+
+loadQuestion();
+
+/* TIMER */
+let totalTime=900;
+let timeLeft=totalTime;
+let timerDisplay=document.getElementById("time");
+
+let timer=setInterval(function(){
+let m=Math.floor(timeLeft/60);
+let s=timeLeft%60;
+timerDisplay.textContent=(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+timeLeft--;
+if(timeLeft<0){
+clearInterval(timer);
+submitQuiz();
+}
+},1000);
+
+</script>
+
+</body>
+</html>
